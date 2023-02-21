@@ -18,13 +18,13 @@ class IndexView(generics.ListCreateAPIView):
     queryset = Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
     serializer_class = QuestionSerializer
 
-class DetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Question.objects.filter(pub_date__lte=timezone.now())
-    serializer_class = QuestionSerializer
     
-class ResultsView(generics.ListCreateAPIView):
-    queryset = Choice.objects.all()
-    serializer_class = ChoiceSerializer
+class ResultsView(generics.RetrieveUpdateDestroyAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        choices=Question.objects.get(pk=pk).choice_set
+        serializer = ChoiceSerializer(choices, many=True)
+        return Response(serializer.data)
 
 def vote(request, question_id, choice_id):
     selected_choice = Choice.objects.get(pk=choice_id)
